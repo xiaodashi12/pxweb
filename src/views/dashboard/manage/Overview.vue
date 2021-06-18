@@ -178,7 +178,7 @@
 import CommonTitle from '@/components/common/CommonTitle'
 import CustomLayout from '@/components/common/CustomLayout.vue'
 export default {
-  name: '',
+  name: 'OverView',
   components:{
     CommonTitle,
     CustomLayout
