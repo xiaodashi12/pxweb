@@ -18,18 +18,7 @@
                  class="table-form bg-gray"
                  label-width="130px">
           <el-row>
-            <el-form-item label="网关名称：">
-              Pixiu
-              <!-- <el-input v-model="form.title"
-                        clearable
-                        placeholder="请输入"></el-input> -->
-            </el-form-item>
-            <el-form-item label="网关描述：">
-              Pixiu
-              <!-- <el-input v-model="form.title"
-                        clearable
-                        placeholder="请输入"></el-input> -->
-            </el-form-item>
+            <div style="clear: 'both'; height: 100px;width: 100%;" id="containForm" ref="containForm"/>
           </el-row>
         </el-form>
         </div>
@@ -105,66 +94,10 @@
     <el-dialog
                 title="新增"
                 :visible.sync="dialogVisible"
-                v-if="dialogVisible"
                 width="640px"
                 :before-close="handleClose">
             <div class="dialog_main">
-                <el-row :gutter="22">
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label"> 路径：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="路径"
-                                        v-model="chooseRow.path"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label">类型：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="类型"
-                                        v-model="chooseRow.type"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="22">
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label"> 描述：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="描述"
-                                        v-model="chooseRow.description"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label">超时：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="超时"
-                                        v-model="chooseRow.timeout"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                </el-row>
+                <div style="clear: 'both'; height: 300px;width: 100%;" id="container" ref="container"/>
             </div>
             <span slot="footer" class="dialog-footer">
                 <el-button size="mini" @click="handleClose">取 消</el-button>
@@ -177,8 +110,12 @@
 <script>
 import CommonTitle from '@/components/common/CommonTitle'
 import CustomLayout from '@/components/common/CustomLayout.vue'
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.main.js'
+import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution'
+import { StandaloneCodeEditorServiceImpl } from 'monaco-editor/esm/vs/editor/standalone/browser/standaloneCodeServiceImpl.js'
+
 export default {
-  name: 'OverView',
+  name: '',
   components:{
     CommonTitle,
     CustomLayout
@@ -188,6 +125,7 @@ export default {
       form:{
 
       },
+      edit:false,
       dialogVisible:false,
       chooseRow:{
         timeout:'',
@@ -211,28 +149,67 @@ export default {
       isSizeInit: false, // 是否是页面初始化时设置的PageSize
       previewDialogVisible: false, // 是否显示行政区划弹窗
       currentTemplate: {},//当前选中的模板
+      monacoEditor: null,
+      monacoEditored: null,
+      detailSource:null,
     }
   },
-  created() {
+  mounted() {
     //获取基础信息
     this.init()
     //获取 Resource 列表
     this.getResourceList()
-    //获取 Resource 详情
-    this.getResourceDetail()
   },
   methods: {
-    handleClose() {
-      this.dialogVisible = false
+    initMoacoEditor(language, value) {
+      this.monacoEditor = monaco.editor.create(document.getElementById('container'), {
+        value,
+        language: 'yaml',
+        codeLens: true,
+        selectOnLineNumbers: true,
+        roundedSelection: false,
+        readOnly: false,
+        lineNumbersMinChars: true,
+        theme: 'vs-dark',
+        wordWrapColumn: 120,
+        folding: false,
+        showFoldingControls: 'always',
+        wordWrap: 'wordWrapColumn',
+        cursorStyle: 'line',
+        automaticLayout: true,
+      });
     },
-    getResourceDetail() {
+    initMoacoEditored(language, value) {
+      this.monacoEditored = monaco.editor.create(document.getElementById('containForm'), {
+        value,
+        language: 'yaml',
+        codeLens: true,
+        selectOnLineNumbers: true,
+        roundedSelection: false,
+        readOnly: false,
+        lineNumbersMinChars: true,
+        theme: 'vs-dark',
+        wordWrapColumn: 120,
+        folding: false,
+        showFoldingControls: 'always',
+        wordWrap: 'wordWrapColumn',
+        cursorStyle: 'line',
+        automaticLayout: true,
+      });
+    },
+    handleLook(row) {
+      this.edit = true
       this.$get('/config/api/resource/detail', {
-        resourceId: 1
+        resourceId: row.id
       })
         .then((res) => {
           if (res.code == 10001) {
-              let data = JSON.parse(res.data)
-              console.log(data)
+              let data = res.data
+              this.detailSource = data
+              this.dialogVisible = true
+              this.$nextTick(() =>[
+                this.initMoacoEditor('yaml', data)
+              ])
           } else {
             
           }
@@ -240,6 +217,10 @@ export default {
         .catch((err) => {
           console.log(err)
         })
+    },
+    handleClose() {
+      this.dialogVisible = false
+      this.monacoEditor.dispose();
     },
     //映射服务列表
     getResourceList() {
@@ -260,9 +241,13 @@ export default {
       this.$get('/config/api/base')
         .then((res) => {
           if (res.code == 10001) {
-            //  console.log(JSON.parse(res.data))
+            this.$nextTick(() =>[
+              this.initMoacoEditored('yaml', res.data)
+            ])
           } else {
-            
+            this.$nextTick(() =>[
+              this.initMoacoEditored('yaml', '')
+            ])
           }
         })
         .catch((err) => {
@@ -275,15 +260,18 @@ export default {
     //修改用户信息
     handleChange() {
       let formData = new FormData();
-      formData.append('name','pixiu');
-      formData.append('description','pixiu111');
+      let data = this.monacoEditored.getValue()
+      formData.append('name', data);
       this.$post('/config/api/base', formData)
         .then((res) => {
           if (res.code == 10001) {
-            console.log(res)
-          } else {
-            
-          }
+            this.$message({
+              type: 'success',
+              message: '修改成功！',
+            })
+            this.monacoEditored.dispose()
+            this.init()
+          } 
         })
         .catch((err) => {
           console.log(err)
@@ -291,26 +279,13 @@ export default {
     },
     makeSure() {
       let formData = new FormData();
-      formData.append('path', this.chooseRow.path);
-      formData.append('type', this.chooseRow.type);
-      formData.append('description', this.chooseRow.description);
-      formData.append('timeout', this.chooseRow.timeout);
-      let obj = {
-        pre:{
-          pluginNames:['rate limit', 'access']
-        },
-        post:{
-          groupNames:['group2']
-        }
-          
-      }
-      formData.append('plugins', JSON.stringify(obj));
-      let mobj = []
-      formData.append('methods', null);
+      let data = this.monacoEditor.getValue()
+      formData.append('name', data);
+      
       this.$post('/config/api/resource', formData)
         .then((res) => {
           if (res.code == 10001) {
-            this.dialogVisible = false
+            this.handleClose()
             this.getResourceList()
             console.log(res)
           } else {
@@ -322,9 +297,9 @@ export default {
         })
     },
     //删除
-    deleteRow() {
+    deleteRow(row) {
       this.$post('/config/api/resource', {
-        resourceId: 2
+        resourceId: row.id
       })
         .then((res) => {
           if (res.code == 10001) {
@@ -345,8 +320,14 @@ export default {
     //新增
     handleAdd() {
       this.dialogVisible = true
-      
+      this.edit = false
+      this.$nextTick(() =>[
+        this.initMoacoEditor('yaml', '')
+      ])
     }
+  },
+  destroyed(){
+    // this.monacoEditored.dispose();
   }
 }
 </script>
