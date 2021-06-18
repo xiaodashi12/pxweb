@@ -55,7 +55,22 @@ Vue.prototype.$post = function (url, data) {
       if (res.code == 10001) {
         resolve(res)
       } else {
-        ElementUI.Message.error(res.data)
+        resolve(res)
+      }
+    }).catch(err => {
+      // ElementUI.Message.error('网络错误，请重试！')
+      console.log(err)
+      reject(err)
+    })
+  })
+}
+Vue.prototype.$delete = function (url, data) {
+  return new Promise((resolve, reject) => {
+    service.delete(url, data).then(res => {
+      if (res.code == 10001) {
+        resolve(res)
+      } else {
+        resolve(res)
       }
     }).catch(err => {
       // ElementUI.Message.error('网络错误，请重试！')
@@ -73,7 +88,7 @@ Vue.prototype.$get = function (url, params = {}) {
       if (res.code == 10001) {
         resolve(res)
       } else {
-        ElementUI.Message.error(res.data)
+        resolve(res)
       }
     }).catch(err => {
       // ElementUI.Message.error('网络错误，请重试！')

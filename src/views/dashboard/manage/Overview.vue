@@ -228,6 +228,7 @@ export default {
         .then((res) => {
           if (res.code == 10001) {
              this.tableData = JSON.parse(res.data)
+             this.pagination.total = this.tableData.length
           } else {
             
           }
@@ -261,7 +262,7 @@ export default {
     handleChange() {
       let formData = new FormData();
       let data = this.monacoEditored.getValue()
-      formData.append('name', data);
+      formData.append('content', data);
       this.$post('/config/api/base', formData)
         .then((res) => {
           if (res.code == 10001) {
@@ -280,7 +281,7 @@ export default {
     makeSure() {
       let formData = new FormData();
       let data = this.monacoEditor.getValue()
-      formData.append('name', data);
+      formData.append('content', data);
       
       this.$post('/config/api/resource', formData)
         .then((res) => {
@@ -298,7 +299,7 @@ export default {
     },
     //删除
     deleteRow(row) {
-      this.$post('/config/api/resource', {
+      this.$delete('/config/api/resource', {
         resourceId: row.id
       })
         .then((res) => {
