@@ -96,6 +96,7 @@ Vue.prototype.$get = function (url, params = {}) {
       // ElementUI.Message.error('网络错误，请重试！')
       console.log(err)
       reject(err)
+      
     })
   })
 }
