@@ -64,9 +64,11 @@ Vue.prototype.$post = function (url, data) {
     })
   })
 }
-Vue.prototype.$delete = function (url, data) {
+Vue.prototype.$delete = function (url, params = {}) {
   return new Promise((resolve, reject) => {
-    service.delete(url, data).then(res => {
+    service.delete(url, {
+      params
+    }).then(res => {
       if (res.code == 10001) {
         resolve(res)
       } else {
