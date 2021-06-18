@@ -64,6 +64,21 @@ Vue.prototype.$post = function (url, data) {
     })
   })
 }
+Vue.prototype.$put = function (url, data) {
+  return new Promise((resolve, reject) => {
+    service.put(url, data).then(res => {
+      if (res.code == 10001) {
+        resolve(res)
+      } else {
+        resolve(res)
+      }
+    }).catch(err => {
+      // ElementUI.Message.error('网络错误，请重试！')
+      console.log(err)
+      reject(err)
+    })
+  })
+}
 Vue.prototype.$delete = function (url, params = {}) {
   return new Promise((resolve, reject) => {
     service.delete(url, {
@@ -96,7 +111,7 @@ Vue.prototype.$get = function (url, params = {}) {
       // ElementUI.Message.error('网络错误，请重试！')
       console.log(err)
       reject(err)
-      
+
     })
   })
 }

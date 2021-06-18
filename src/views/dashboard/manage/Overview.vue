@@ -283,7 +283,7 @@ export default {
       let data = this.monacoEditor.getValue()
       formData.append('content', data);
       
-      this.$post('/config/api/resource', formData)
+      this.$put('/config/api/resource', formData)
         .then((res) => {
           if (res.code == 10001) {
             this.handleClose()
