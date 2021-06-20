@@ -6,10 +6,11 @@
       </div>
       <div class="custom-tools">
         <div class="table-head">
-            <div class="custom-tools__info">基础信息</div>
-            <el-button type="primary" icon="el-icon-plus" size="mini"
-                        @click="handleAdd">修改</el-button>
+          <div class="custom-tools__info">基础信息</div>
+          <el-button type="primary" icon="el-icon-plus" size="mini"
+                     @click="handleChange">修改</el-button>
         </div>
+        
         <div class="custom-tools__content">
           <el-form :model="form"
                  :inline="true"
@@ -17,16 +18,12 @@
                  class="table-form bg-gray"
                  label-width="130px">
           <el-row>
-            <div style="width:30%;">
-                <el-input v-model="form.title" type="textArea"
-                        clearable
-                        placeholder="请输入"></el-input>
-            </div>
-              
+            <div style="clear: 'both'; height: 100px;width: 100%;" id="containForm" ref="containForm"/>
           </el-row>
         </el-form>
         </div>
       </div>
+
       <div class="table-head">
         <div class="custom-tools__info">方法映射</div>
         <el-button type="primary" icon="el-icon-plus" size="mini"
@@ -42,7 +39,12 @@
                   @selection-change="handleSelectionChange"
                   style="width: 100%">
           <el-table-column 
+                           prop="id"
+                           label="ID">
+          </el-table-column>
+          <el-table-column 
                            class-name="custom-popper--overflow"
+                           prop="httpVerb"
                            label="方法">
             <template slot-scope="scope">
                 <span></span>
@@ -55,7 +57,7 @@
             </template>
           </el-table-column>
           <el-table-column 
-                           prop="path"
+                           prop="resourcePath"
                            label="路径">
           </el-table-column>
           <el-table-column
@@ -104,73 +106,31 @@
         </div>
       </div>
     </div>
-    <el-dialog
+            <el-dialog
                 title="新增"
-                :visible.sync="dialogVisible"
-                v-if="dialogVisible"
+                :visible.sync="createDialogVisible"
                 width="640px"
                 :before-close="handleClose">
             <div class="dialog_main">
-                <el-row :gutter="22">
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label"> 路径：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="路径"
-                                        v-model="chooseRow.path"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label">类型：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="类型"
-                                        v-model="chooseRow.type"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="22">
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label"> 描述：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="描述"
-                                        v-model="chooseRow.description"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label">超时：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="超时"
-                                        v-model="chooseRow.timeout"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                </el-row>
+                <div style="clear: 'both'; height: 300px;width: 100%;" id="createContainer" ref="createContainer"/>
             </div>
             <span slot="footer" class="dialog-footer">
                 <el-button size="mini" @click="handleClose">取 消</el-button>
-                <el-button type="primary"  size="mini" @click="makeSure">确 定</el-button>
+                <el-button type="primary"  size="mini" @click="makeCreate">确 定</el-button>
+            </span>
+        </el-dialog>
+
+            <el-dialog
+                title="查看"
+                :visible.sync="updateDialogVisible"
+                width="640px"
+                :before-close="handleClose">
+            <div class="dialog_main">
+                <div style="clear: 'both'; height: 300px;width: 100%;" id="updateContainer" ref="updateContainer"/>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button size="mini" @click="handleClose">取 消</el-button>
+                <el-button type="primary"  size="mini" @click="makeModify">确 定</el-button>
             </span>
         </el-dialog>
   </CustomLayout>
@@ -179,6 +139,10 @@
 <script>
 import CommonTitle from '@/components/common/CommonTitle'
 import CustomLayout from '@/components/common/CustomLayout.vue'
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.main.js'
+import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution'
+import { StandaloneCodeEditorServiceImpl } from 'monaco-editor/esm/vs/editor/standalone/browser/standaloneCodeServiceImpl.js'
+
 export default {
   name: '',
   components:{
@@ -187,8 +151,17 @@ export default {
   },
   data () {
     return {
+      edit:false,
+      createDialogVisible:false,
+      updateDialogVisible:false,
       form:{
 
+      },
+      chooseRow:{
+        timeout:'',
+        description:'',
+        type:'',
+        path:''
       },
       pagination: { // 分页字段
         pageIndex: 1, // 当前页
@@ -210,9 +183,63 @@ export default {
   },
   mounted(){
     this.getMethodList()
-    this.getMethodDeatil()
+    this.getResourceDetail()
   },
   methods: {
+    initMoacoEditored(language, value) {
+      this.monacoEditored = monaco.editor.create(document.getElementById('containForm'), {
+        value,
+        language: 'yaml',
+        codeLens: true,
+        selectOnLineNumbers: true,
+        roundedSelection: false,
+        readOnly: false,
+        lineNumbersMinChars: true,
+        theme: 'vs-dark',
+        wordWrapColumn: 120,
+        folding: false,
+        showFoldingControls: 'always',
+        wordWrap: 'wordWrapColumn',
+        cursorStyle: 'line',
+        automaticLayout: true,
+      });
+    },
+    initCreateMoacoEditor(language, value) {
+      this.createMonacoEditor = monaco.editor.create(document.getElementById('createContainer'), {
+        value,
+        language: 'yaml',
+        codeLens: true,
+        selectOnLineNumbers: true,
+        roundedSelection: false,
+        readOnly: false,
+        lineNumbersMinChars: true,
+        theme: 'vs-dark',
+        wordWrapColumn: 120,
+        folding: false,
+        showFoldingControls: 'always',
+        wordWrap: 'wordWrapColumn',
+        cursorStyle: 'line',
+        automaticLayout: true,
+      });
+    },
+    initUpdateMoacoEditor(language, value) {
+      this.updateMonacoEditor = monaco.editor.create(document.getElementById('updateContainer'), {
+        value,
+        language: 'yaml',
+        codeLens: true,
+        selectOnLineNumbers: true,
+        roundedSelection: false,
+        readOnly: false,
+        lineNumbersMinChars: true,
+        theme: 'vs-dark',
+        wordWrapColumn: 120,
+        folding: false,
+        showFoldingControls: 'always',
+        wordWrap: 'wordWrapColumn',
+        cursorStyle: 'line',
+        automaticLayout: true,
+      });
+    },
     handleSelectionChange(val) {
       this.multipleSelection = val
     },
@@ -237,10 +264,10 @@ export default {
         })
     },
     //删除
-    deleteRow() {
-      this.$post('/config/api/resource/method', {
-        resourceId: 2,
-        methodId: 2
+    deleteRow(row) {
+      this.$delete('/config/api/resource/method', {
+        resourceId: this.$route.query.resourceId,
+        methodId: row.id
       })
         .then((res) => {
           if (res.code == 10001) {
@@ -248,7 +275,7 @@ export default {
               type: 'success',
               message: '删除成功！',
             })
-            this.getResourceList()
+            this.getMethodList()
             console.log(res)
           } else {
             
@@ -261,12 +288,127 @@ export default {
      //映射服务列表
     getMethodList() {
       this.$get('/config/api/resource/method/list', {
-        resourceId:1
+        resourceId: this.$route.query.resourceId
       })
         .then((res) => {
           if (res.code == 10001) {
              this.tableData = JSON.parse(res.data)
              console.log(this.tableData)
+          } else {
+            
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    getResourceDetail() {
+      this.$get('/config/api/resource/detail', {
+        resourceId: this.$route.query.resourceId
+      })
+        .then((res) => {
+          if (res.code == 10001) {
+            this.$nextTick(() =>[
+              this.initMoacoEditored('yaml', res.data)
+            ])
+          } else {
+            this.$nextTick(() =>[
+              this.initMoacoEditored('yaml', '')
+            ])
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    //新增
+    handleAdd() {
+      this.dialogVisible = true
+      this.edit = false
+      this.$nextTick(() =>[
+        this.initCreateMoacoEditor('yaml', '', true)
+      ])
+    },
+    //修改resource detail 信息
+    handleChange() {
+      let formData = new FormData();
+      let data = this.monacoEditored.getValue()
+      formData.append('content', data);
+      this.$put('/config/api/resource/method?resourceId=' + this.$route.query.resourceId, formData)
+        .then((res) => {
+          if (res.code == 10001) {
+            this.$message({
+              type: 'success',
+              message: '修改成功！',
+            })
+            this.monacoEditored.dispose()
+            this.init()
+          } 
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    makeCreate() {
+      let formData = new FormData();
+      let data = this.createMonacoEditor.getValue()
+      formData.append('content', data);
+      
+      this.$post('/config/api/resource/method?resourceId=' + this.$route.query.resourceId, formData)
+        .then((res) => {
+          if (res.code == 10001) {
+            this.handleClose()
+            this.getMethodList()
+            console.log(res)
+          } else {
+            
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    makeModify() {
+      let formData = new FormData();
+      let data = this.updateMonacoEditor.getValue()
+      formData.append('content', data);
+      
+      this.$put('/config/api/resource/method?resourceId=' + this.$route.query.resourceId, formData)
+        .then((res) => {
+          if (res.code == 10001) {
+            this.handleClose()
+            this.getMethodList()
+            console.log(res)
+          } else {
+            
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    handleClose() {
+      this.createDialogVisible = false
+      this.updateDialogVisible = false
+      
+      this.createMonacoEditor.dispose();
+      this.updateMonacoEditor.dispose();
+    },
+    handleLook(row) {
+
+      this.edit = true
+      this.$get('/config/api/resource/method/detail', {
+        resourceId: this.$route.query.resourceId,
+        methodId: row.id,
+      })
+        .then((res) => {
+          if (res.code == 10001) {
+              let data = res.data
+              this.detailSource = data
+              this.createDialogVisible = true
+              this.$nextTick(() =>[
+                this.initUpdateMoacoEditor('yaml', data)
+              ])
           } else {
             
           }

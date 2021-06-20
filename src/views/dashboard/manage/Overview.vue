@@ -38,6 +38,11 @@
                   @selection-change="handleSelectionChange"
                   style="width: 100%">
           <el-table-column 
+                           prop="id"
+                           label="ID">
+            
+          </el-table-column>
+          <el-table-column 
                            prop=""
                            label="映射服务">
             
@@ -198,25 +203,33 @@ export default {
       });
     },
     handleLook(row) {
-      this.edit = true
-      this.$get('/config/api/resource/detail', {
-        resourceId: row.id
-      })
-        .then((res) => {
-          if (res.code == 10001) {
-              let data = res.data
-              this.detailSource = data
-              this.dialogVisible = true
-              this.$nextTick(() =>[
-                this.initMoacoEditor('yaml', data)
-              ])
-          } else {
-            
+
+      this.$router.push(
+        { path: '/Mapping?resourceId=' + row.id,
+          query: {
+            resourceId : row.id
           }
         })
-        .catch((err) => {
-          console.log(err)
-        })
+
+      // this.edit = true
+      // this.$get('/config/api/resource/detail', {
+      //   resourceId: row.id
+      // })
+      //   .then((res) => {
+      //     if (res.code == 10001) {
+      //         let data = res.data
+      //         this.detailSource = data
+      //         this.dialogVisible = true
+      //         this.$nextTick(() =>[
+      //           this.initMoacoEditor('yaml', data)
+      //         ])
+      //     } else {
+            
+      //     }
+      //   })
+      //   .catch((err) => {
+      //     console.log(err)
+      //   })
     },
     handleClose() {
       this.dialogVisible = false
@@ -283,7 +296,7 @@ export default {
       let data = this.monacoEditor.getValue()
       formData.append('content', data);
       
-      this.$put('/config/api/resource', formData)
+      this.$post('/config/api/resource', formData)
         .then((res) => {
           if (res.code == 10001) {
             this.handleClose()
