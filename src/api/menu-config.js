@@ -17,15 +17,11 @@ export const menuList = [{
     componentName: 'Plug'
   }]
 }, {
-  name: '流量管控',
+  name: '限流配置',
   id: 'Flow',
   children: [{
-    name: '流量监控',
-    id: 'FlowMonitor',
-    componentName: '/FlowMonitor'
-  }, {
-    name: '流量配置',
-    id: 'TraffiConfig',
-    componentName: '/TraffiConfig'
+    name: '限流配置',
+    id: 'RateLimiter',
+    componentName: '/RateLimiter'
   }]
 }]
