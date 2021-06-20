@@ -4,7 +4,7 @@
       <div>
         <CommonTitle title="概览"></CommonTitle>
       </div>
-      <div class="custom-tools">
+      <!-- <div class="custom-tools">
         <div class="table-head">
           <div class="custom-tools__info">基础信息</div>
           <el-button type="primary" icon="el-icon-plus" size="mini"
@@ -22,7 +22,7 @@
           </el-row>
         </el-form>
         </div>
-      </div>
+      </div> -->
       <div class="table-head">
         <div class="custom-tools__info">映射服务</div>
         <el-button type="primary" icon="el-icon-plus" size="mini"
@@ -210,26 +210,6 @@ export default {
             resourceId : row.id
           }
         })
-
-      // this.edit = true
-      // this.$get('/config/api/resource/detail', {
-      //   resourceId: row.id
-      // })
-      //   .then((res) => {
-      //     if (res.code == 10001) {
-      //         let data = res.data
-      //         this.detailSource = data
-      //         this.dialogVisible = true
-      //         this.$nextTick(() =>[
-      //           this.initMoacoEditor('yaml', data)
-      //         ])
-      //     } else {
-            
-      //     }
-      //   })
-      //   .catch((err) => {
-      //     console.log(err)
-      //   })
     },
     handleClose() {
       this.dialogVisible = false

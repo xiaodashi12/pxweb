@@ -6,7 +6,7 @@
       </div>
       <div class="custom-tools">
         <div class="table-head">
-          <div class="custom-tools__info">基础信息</div>
+          <div class="custom-tools__info">Resource信息</div>
           <el-button type="primary" icon="el-icon-plus" size="mini"
                      @click="handleChange">修改</el-button>
         </div>
@@ -121,7 +121,7 @@
         </el-dialog>
 
             <el-dialog
-                title="查看"
+                title="查看修改"
                 :visible.sync="updateDialogVisible"
                 width="640px"
                 :before-close="handleClose">
@@ -179,6 +179,11 @@ export default {
       isSizeInit: false, // 是否是页面初始化时设置的PageSize
       previewDialogVisible: false, // 是否显示行政区划弹窗
       currentTemplate: {},//当前选中的模板
+      updateDetailSource:null,
+      createDetailSource:null,
+      createMonacoEditor: null,
+      updateMonacoEditor: null,
+      monacoEditored: null,
     }
   },
   mounted(){
@@ -321,20 +326,12 @@ export default {
           console.log(err)
         })
     },
-    //新增
-    handleAdd() {
-      this.dialogVisible = true
-      this.edit = false
-      this.$nextTick(() =>[
-        this.initCreateMoacoEditor('yaml', '', true)
-      ])
-    },
     //修改resource detail 信息
     handleChange() {
       let formData = new FormData();
       let data = this.monacoEditored.getValue()
       formData.append('content', data);
-      this.$put('/config/api/resource/method?resourceId=' + this.$route.query.resourceId, formData)
+      this.$put('/config/api/resource?resourceId=' + this.$route.query.resourceId, formData)
         .then((res) => {
           if (res.code == 10001) {
             this.$message({
@@ -342,7 +339,7 @@ export default {
               message: '修改成功！',
             })
             this.monacoEditored.dispose()
-            this.init()
+            this.getResourceDetail()
           } 
         })
         .catch((err) => {
@@ -390,9 +387,12 @@ export default {
     handleClose() {
       this.createDialogVisible = false
       this.updateDialogVisible = false
-      
-      this.createMonacoEditor.dispose();
-      this.updateMonacoEditor.dispose();
+      if (this.createMonacoEditor != null) {
+        this.createMonacoEditor.dispose();
+      }
+      if (this.updateMonacoEditor != null) {
+        this.updateMonacoEditor.dispose();
+      }
     },
     handleLook(row) {
 
@@ -404,8 +404,8 @@ export default {
         .then((res) => {
           if (res.code == 10001) {
               let data = res.data
-              this.detailSource = data
-              this.createDialogVisible = true
+              this.modifyDetailSource = data
+              this.updateDialogVisible = true
               this.$nextTick(() =>[
                 this.initUpdateMoacoEditor('yaml', data)
               ])
@@ -416,6 +416,14 @@ export default {
         .catch((err) => {
           console.log(err)
         })
+    },
+    //新增
+    handleAdd() {
+      this.createDialogVisible = true
+      this.edit = false
+      this.$nextTick(() =>[
+        this.initCreateMoacoEditor('yaml', '')
+      ])
     },
   }
 }

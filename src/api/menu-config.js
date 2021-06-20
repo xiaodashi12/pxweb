@@ -5,11 +5,13 @@ export const menuList = [{
     name: '概览',
     id: 'Overview',
     componentName: '/Overview'
-  }, {
-    name: '映射配置',
-    id: 'Mapping',
-    componentName: '/Mapping'
-  }, {
+  }, 
+  // {
+  //   name: '映射配置',
+  //   id: 'Mapping',
+  //   componentName: '/Mapping'
+  // }, 
+  {
     name: '插件配置',
     id: 'Plug',
     componentName: 'Plug'
