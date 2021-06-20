@@ -187,9 +187,11 @@ export default {
   },
   data () {
     return {
+      queyrId: null,
       form:{
 
       },
+      dialogVisible: false,
       pagination: { // 分页字段
         pageIndex: 1, // 当前页
         pageSize: 20, // 每页显示多少条
@@ -209,6 +211,7 @@ export default {
     }
   },
   mounted(){
+    console.log(this.$route)
     this.getMethodList()
     this.getMethodDeatil()
   },

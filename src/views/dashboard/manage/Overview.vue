@@ -198,25 +198,31 @@ export default {
       });
     },
     handleLook(row) {
-      this.edit = true
-      this.$get('/config/api/resource/detail', {
-        resourceId: row.id
+      this.$router.push({
+        path:'/Mapping',
+        query:{
+          queryId: row.id
+        }
       })
-        .then((res) => {
-          if (res.code == 10001) {
-              let data = res.data
-              this.detailSource = data
-              this.dialogVisible = true
-              this.$nextTick(() =>[
-                this.initMoacoEditor('yaml', data)
-              ])
-          } else {
+      // this.edit = true
+      // this.$get('/config/api/resource/detail', {
+      //   resourceId: row.id
+      // })
+      //   .then((res) => {
+      //     if (res.code == 10001) {
+      //         let data = res.data
+      //         this.detailSource = data
+      //         this.dialogVisible = true
+      //         this.$nextTick(() =>[
+      //           this.initMoacoEditor('yaml', data)
+      //         ])
+      //     } else {
             
-          }
-        })
-        .catch((err) => {
-          console.log(err)
-        })
+      //     }
+      //   })
+      //   .catch((err) => {
+      //     console.log(err)
+      //   })
     },
     handleClose() {
       this.dialogVisible = false
