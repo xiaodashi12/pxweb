@@ -7,10 +7,13 @@
       <div class="custom-tools">
         <div class="table-head">
           <div class="custom-tools__info">限流配置</div>
-          <el-button type="primary" icon="el-icon-plus" size="mini"
+          <div>
+              <el-button type="primary" icon="el-icon-plus" size="mini"
                      @click="handleSave">保存</el-button>
-          <el-button type="primary" icon="el-icon-plus" size="mini"
+              <el-button type="primary" icon="el-icon-plus" size="mini"
                      @click="handleDelete">删除</el-button>
+          </div>
+         
         </div>
         
         <div class="custom-tools__content">
