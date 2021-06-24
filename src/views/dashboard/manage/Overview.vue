@@ -203,13 +203,12 @@ export default {
       });
     },
     handleLook(row) {
-
-      this.$router.push(
-        { path: '/Mapping?resourceId=' + row.id,
-          query: {
-            resourceId : row.id
-          }
-        })
+      this.$router.push({
+        path:'/Mapping',
+        query:{
+          queryId: row.id
+        }
+      })
     },
     handleClose() {
       this.dialogVisible = false
