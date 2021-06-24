@@ -4,7 +4,7 @@
       <div>
         <CommonTitle title="插件配置"></CommonTitle>
       </div>
-      <div class="custom-tools">
+      <!-- <div class="custom-tools">
         <div class="table-head">
             <div class="custom-tools__info">基础信息</div>
             <el-button type="primary" icon="el-icon-plus" size="mini"
@@ -26,7 +26,7 @@
           </el-row>
         </el-form>
         </div>
-      </div>
+      </div> -->
       <div class="table-head">
         <div class="custom-tools__info">插件组</div>
         <el-button type="primary" icon="el-icon-plus" size="mini"
@@ -43,34 +43,20 @@
                   style="width: 100%">
           <el-table-column 
                            class-name="custom-popper--overflow"
+                           prop="groupName"
                            label="名称">
-            <template slot-scope="scope">
-              <el-tooltip effect="dark"
-                          :content="scope.row.areaName"
-                          :open-delay="1000"
-                          placement="top">
-                <span>{{scope.row.areaName}}</span>
-              </el-tooltip>
-            </template>
           </el-table-column>
           <el-table-column class-name="custom-popper--overflow"
                            label="插件">
             <template slot-scope="scope">
-              <el-tooltip effect="dark"
-                          :content="scope.row.title"
-                          :open-delay="1000"
-                          placement="top">
-                <span>{{scope.row.title}}</span>
-              </el-tooltip>
-            </template>
-          </el-table-column>
-          <el-table-column 
-                           prop="source"
-                           label="插件名称">
-          </el-table-column>
-          <el-table-column
-                           prop="creatTime"
-                           label="XXX">
+                <el-table :data="scope.row.plugins" stripe style="width: 100%">
+                  <el-table-column type="index"></el-table-column>
+                  <el-table-column prop="name" label="name"></el-table-column>
+                  <el-table-column prop="version" label="version"></el-table-column>
+                  <el-table-column prop="priority" label="priority"></el-table-column>
+                  <el-table-column prop="externalLookupName" label="externalLookupName"></el-table-column>
+                </el-table>
+              </template>
           </el-table-column>
           <el-table-column
                            label="操作">
@@ -112,43 +98,29 @@
     </div>
     <el-dialog
                 title="新增"
-                :visible.sync="dialogVisible"
-                v-if="dialogVisible"
+                :visible.sync="createDialogVisible"
                 width="640px"
                 :before-close="handleClose">
             <div class="dialog_main">
-                <el-row :gutter="22">
-                    <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label"> 名称：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="名称"
-                                        v-model="chooseRow.groupName"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col>
-                    <!-- <el-col :span="12">
-                        <div class="dialog_item">
-                            <div class="item_label">类型：</div>
-                            <div class="item_value" style="width:100%;">
-                                <el-input
-                                        size="small"
-                                        placeholder="类型"
-                                        v-model="chooseRow.type"
-                                        clearable>
-                                </el-input>
-                            </div>
-                        </div>
-                    </el-col> -->
-                </el-row>
+                <div style="clear: 'both'; height: 300px;width: 100%;" id="createContainer" ref="createContainer"/>
             </div>
             <span slot="footer" class="dialog-footer">
                 <el-button size="mini" @click="handleClose">取 消</el-button>
-                <el-button type="primary"  size="mini" @click="makeSure">确 定</el-button>
+                <el-button type="primary"  size="mini" @click="makeCreate">确 定</el-button>
+            </span>
+        </el-dialog>
+
+            <el-dialog
+                title="查看修改"
+                :visible.sync="updateDialogVisible"
+                width="640px"
+                :before-close="handleClose">
+            <div class="dialog_main">
+                <div style="clear: 'both'; height: 300px;width: 100%;" id="updateContainer" ref="updateContainer"/>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button size="mini" @click="handleClose">取 消</el-button>
+                <el-button type="primary"  size="mini" @click="makeModify">确 定</el-button>
             </span>
         </el-dialog>
   </CustomLayout>
@@ -157,6 +129,10 @@
 <script>
 import CommonTitle from '@/components/common/CommonTitle'
 import CustomLayout from '@/components/common/CustomLayout.vue'
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.main.js'
+import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution'
+import { StandaloneCodeEditorServiceImpl } from 'monaco-editor/esm/vs/editor/standalone/browser/standaloneCodeServiceImpl.js'
+
 export default {
   name: '',
   components:{
@@ -168,6 +144,9 @@ export default {
       form:{
 
       },
+      edit:false,      
+      createDialogVisible:false,
+      updateDialogVisible:false,
       dialogVisible:false,
       chooseRow:{
         timeout:'',
@@ -191,14 +170,100 @@ export default {
       isSizeInit: false, // 是否是页面初始化时设置的PageSize
       previewDialogVisible: false, // 是否显示行政区划弹窗
       currentTemplate: {},//当前选中的模板
+      updateDetailSource:null,
+      createDetailSource:null,
+      createMonacoEditor: null,
+      updateMonacoEditor: null,
     }
   },
   mounted(){
     this.getPluginList()
-     //获取 Resource 详情
-    this.getResourceDetail()
   },
   methods: {
+    initCreateMoacoEditor(language, value) {
+      this.createMonacoEditor = monaco.editor.create(document.getElementById('createContainer'), {
+        value,
+        language: 'yaml',
+        codeLens: true,
+        selectOnLineNumbers: true,
+        roundedSelection: false,
+        readOnly: false,
+        lineNumbersMinChars: true,
+        theme: 'vs-dark',
+        wordWrapColumn: 120,
+        folding: false,
+        showFoldingControls: 'always',
+        wordWrap: 'wordWrapColumn',
+        cursorStyle: 'line',
+        automaticLayout: true,
+      });
+    },
+    initUpdateMoacoEditor(language, value) {
+      this.updateMonacoEditor = monaco.editor.create(document.getElementById('updateContainer'), {
+        value,
+        language: 'yaml',
+        codeLens: true,
+        selectOnLineNumbers: true,
+        roundedSelection: false,
+        readOnly: false,
+        lineNumbersMinChars: true,
+        theme: 'vs-dark',
+        wordWrapColumn: 120,
+        folding: false,
+        showFoldingControls: 'always',
+        wordWrap: 'wordWrapColumn',
+        cursorStyle: 'line',
+        automaticLayout: true,
+      });
+    },
+    makeCreate() {
+      let formData = new FormData();
+      let data = this.createMonacoEditor.getValue()
+      formData.append('content', data);
+      
+      this.$post('/config/api/plugin_group', formData)
+        .then((res) => {
+          if (res.code == 10001) {
+            this.handleClose()
+            this.getPluginList()
+            console.log(res)
+          } else {
+            
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    makeModify() {
+      let formData = new FormData();
+      let data = this.updateMonacoEditor.getValue()
+      formData.append('content', data);
+      
+      this.$put('/config/api/plugin_group', formData)
+        .then((res) => {
+          if (res.code == 10001) {
+            this.handleClose()
+            this.getPluginList()
+            console.log(res)
+          } else {
+            
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    handleClose() {
+      this.createDialogVisible = false
+      this.updateDialogVisible = false
+      if (this.createMonacoEditor != null) {
+        this.createMonacoEditor.dispose();
+      }
+      if (this.updateMonacoEditor != null) {
+        this.updateMonacoEditor.dispose();
+      }
+    },
     handleSelectionChange(val) {
       this.multipleSelection = val
     },
@@ -217,18 +282,21 @@ export default {
         })
     },
     handleAdd() {
-
+      this.createDialogVisible = true
+      this.edit = false
+      this.$nextTick(() =>[
+        this.initCreateMoacoEditor('yaml', '')
+      ])
     },
     //映射服务列表
     getPluginList() {
       this.$get('/config/api/plugin_group/list', {
-        name: "group1"
       })
         .then((res) => {
           if (res.code == 10001) {
              this.tableData = JSON.parse(res.data)
           } else {
-            
+             this.tableData = []
           }
         })
         .catch((err) => {
@@ -262,9 +330,9 @@ export default {
         })
     },
     //删除
-    deleteRow() {
-      this.$post('/config/api/plugin_group', {
-        name: 'group1'
+    deleteRow(row) {
+      this.$delete('/config/api/plugin_group', {
+        name: row.groupName
       })
         .then((res) => {
           if (res.code == 10001) {
@@ -282,7 +350,29 @@ export default {
           console.log(err)
         })
     },
-  }
+    handleLook(row) {
+      this.edit = true
+      this.$get('/config/api/plugin_group/detail', {
+        name: row.groupName,
+      })
+        .then((res) => {
+          if (res.code == 10001) {
+              let data = res.data
+              this.modifyDetailSource = data
+              this.updateDialogVisible = true
+              this.$nextTick(() =>[
+                this.initUpdateMoacoEditor('yaml', data)
+              ])
+          } else {
+            
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+  },
+
 }
 </script>
 

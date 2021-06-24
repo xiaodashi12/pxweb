@@ -4,7 +4,7 @@
       <div>
         <CommonTitle title="概览"></CommonTitle>
       </div>
-      <div class="custom-tools">
+      <!-- <div class="custom-tools">
         <div class="table-head">
           <div class="custom-tools__info">基础信息</div>
           <el-button type="primary" icon="el-icon-plus" size="mini"
@@ -22,7 +22,7 @@
           </el-row>
         </el-form>
         </div>
-      </div>
+      </div> -->
       <div class="table-head">
         <div class="custom-tools__info">映射服务</div>
         <el-button type="primary" icon="el-icon-plus" size="mini"
@@ -37,6 +37,11 @@
                   header-row-class-name="custom-table-header"
                   @selection-change="handleSelectionChange"
                   style="width: 100%">
+          <el-table-column 
+                           prop="id"
+                           label="ID">
+            
+          </el-table-column>
           <el-table-column 
                            prop=""
                            label="映射服务">
@@ -204,25 +209,6 @@ export default {
           queryId: row.id
         }
       })
-      // this.edit = true
-      // this.$get('/config/api/resource/detail', {
-      //   resourceId: row.id
-      // })
-      //   .then((res) => {
-      //     if (res.code == 10001) {
-      //         let data = res.data
-      //         this.detailSource = data
-      //         this.dialogVisible = true
-      //         this.$nextTick(() =>[
-      //           this.initMoacoEditor('yaml', data)
-      //         ])
-      //     } else {
-            
-      //     }
-      //   })
-      //   .catch((err) => {
-      //     console.log(err)
-      //   })
     },
     handleClose() {
       this.dialogVisible = false
@@ -289,7 +275,7 @@ export default {
       let data = this.monacoEditor.getValue()
       formData.append('content', data);
       
-      this.$put('/config/api/resource', formData)
+      this.$post('/config/api/resource', formData)
         .then((res) => {
           if (res.code == 10001) {
             this.handleClose()
